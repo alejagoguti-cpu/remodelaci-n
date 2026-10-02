@@ -1,9 +1,19 @@
 # Bitácora de Obra · Remodelación segundo piso
 
-App de una sola página para llevar la remodelación: una lámina (carátula) por habitación, planos, registro fotográfico por visita (lunes, miércoles y sábado), partidas y dashboards. Todo se guarda en Google Drive, en la carpeta `Bitácora Remodelación`.
+Seguimiento de remodelación con foco en **redes MEP** (eléctrica, hidráulica, sanitaria, gas, datos/CCTV, HVAC) y **acabados**.
 
-- `bitacora.html`: código fuente de la app.
-- Versión publicada: https://claude.ai/artifact/EYFQjdoNFFuWYtKoyajMkT (privada, solo su dueña).
+- Una **lámina (carátula) por habitación**, y un **proyecto conjunto** con dashboards.
+- **Redes MEP**: puntos por disciplina con estado (proyectado, instalado, probado, cerrado) y foto antes de cerrar el muro. Alerta de ítems sin probar o cerrados sin foto.
+- **Acabados**: cuadro por elemento (piso, muros, pintura, cielo, carpintería, aparatos, luminarias) con material, cantidad y estado, y lista de compras.
+- **Registro de obra** por visita (lunes, miércoles y sábado) con fotos por disciplina, planos y observaciones con foto.
+- **Informe final**: genera un Google Doc con todo.
+- Todo se guarda en **Google Drive**, carpeta `Bitácora Remodelación`.
+
+## Estructura
+- `src/styles.css`, `src/app.js`, `src/body.html`: código fuente.
+- `node build.js`: genera `index.html` (archivos separados) y `dist/bitacora.html` (todo en uno).
+- Versión publicada (privada): https://claude.ai/artifact/EYFQjdoNFFuWYtKoyajMkT
 
 ## Nota
-La app usa el conector de Google Drive de claude.ai (`claude.use('mcp')`). Abierta fuera de claude.ai no podrá guardar en Drive; este repositorio es el respaldo del código.
+El guardado en Drive usa el conector de Google Drive de claude.ai. Abierta fuera de claude.ai, la app no puede guardar.
+Las ideas se inspiran en proyectos públicos de seguimiento de obra; no se copió código de terceros.
