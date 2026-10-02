@@ -47,7 +47,8 @@ async function ensureFolders(){
 const b64utf8=b=>new TextDecoder().decode(Uint8Array.from(atob(b),c=>c.charCodeAt(0)));
 function normalize(s){
   s.v=2;s.project=Object.assign({name:'Remodelación segundo piso',address:'',owner:'',lead:'',start:today()},s.project);
-  s.rooms=(s.rooms||[]).map(r=>Object.assign(mkRoom(r.name),r,{mep:r.mep||[],fin:r.fin||[],punch:r.punch||[],plans:r.plans||[],visits:r.visits||[]}));
+  s.rooms=(s.rooms||[]).map(r=>Object.assign(mkRoom(r.name),r,{mep:r.mep||[],fin:r.fin||[],punch:(r.punch||[]).map(x=>x.st?x:{...x,st:x.done?'closed':'open'}),plans:r.plans||[],visits:r.visits||[]}));
+  ['cx','ncr','insp','mat','plan'].forEach(k=>s[k]=s[k]||[]);
   return s;
 }
 async function loadState(){
@@ -177,14 +178,14 @@ function render(){
 }
 
 /* ---------- proyecto conjunto + dashboards ---------- */
-const JT=[['resumen','Resumen'],['mep','Redes MEP'],['acabados','Acabados'],['visitas','Visitas'],['galeria','Galería'],['proyecto','Proyecto']];
+const JT=[['resumen','Resumen'],['mep','Redes MEP'],['acabados','Acabados'],...EXT.tabs,['visitas','Visitas'],['galeria','Galería'],['proyecto','Proyecto']];
 function jointView(){
   const p=S.project,t=total(),M=allMep(),Fn=allFin();
-  const body={resumen:jointResumen,mep:dashMep,acabados:dashAcabados,visitas:dashVisitas,galeria:dashGaleria,proyecto:projectPanel}[jtab]();
+  const body=({resumen:jointResumen,mep:dashMep,acabados:dashAcabados,visitas:dashVisitas,galeria:dashGaleria,proyecto:projectPanel,...EXT.views})[jtab]();
   return `
   <div class="hero"><div><small>Proyecto conjunto · ${S.rooms.length} láminas</small><h1>${esc(p.name)}</h1><p>${esc(p.address)||'Agrega la dirección del proyecto'}${p.owner?' · '+esc(p.owner):''}</p></div>
    <div class="big" style="--p:${t}" data-l="${t}%"></div></div>
-  <div class="stats"><div><b>${S.rooms.length}</b><span>Espacios</span></div><div><b>${M.length}</b><span>Puntos MEP</span></div><div><b>${Fn.length}</b><span>Ítems de acabado</span></div><div><b>${S.rooms.reduce((a,r)=>a+nPhotos(r),0)}</b><span>Fotografías</span></div><div><b>${allPunch().filter(x=>!x.done).length}</b><span>Observaciones abiertas</span></div></div>
+  <div class="stats"><div><b>${S.rooms.length}</b><span>Espacios</span></div><div><b>${M.length}</b><span>Puntos MEP</span></div><div><b>${Fn.length}</b><span>Ítems de acabado</span></div><div><b>${S.rooms.reduce((a,r)=>a+nPhotos(r),0)}</b><span>Fotografías</span></div><div><b>${allPunch().filter(openP).length}</b><span>Observaciones abiertas</span></div><div><b>${S.ncr.filter(n=>!['closed','void'].includes(n.st)).length}</b><span>NCR abiertas</span></div><div><b>${S.cx.filter(x=>x.status==='commissioned').length}/${S.cx.length}</b><span>Sistemas en servicio</span></div></div>
   <div class="tabs">${JT.map(([k,l])=>`<button class="${jtab===k?'on':''}" data-act="jtab" data-v="${k}">${l}</button>`).join('')}</div>${body}`;
 }
 const emptyRooms=()=>`<div class="empty"><h3 style="font:800 18px var(--display);text-transform:uppercase">Primero agrega espacios</h3>Los dashboards se llenan con los puntos MEP y los acabados de cada habitación.
@@ -194,7 +195,7 @@ const MEPCOL=['var(--rule)','var(--warn)','var(--blue)','var(--ok)'];
 
 function jointResumen(){
   if(!S.rooms.length)return emptyRooms();
-  const open=allPunch().filter(x=>!x.done).sort((a,b)=>SEV.indexOf(a.sev)-SEV.indexOf(b.sev)).slice(0,8);
+  const open=allPunch().filter(openP).sort((a,b)=>SEV.indexOf(a.sev)-SEV.indexOf(b.sev)).slice(0,8);
   const vs=S.rooms.flatMap(r=>r.visits.map(v=>({...v,room:r}))).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
   return `<div class="panel"><h3>Índice de láminas</h3><div class="tw"><table><tr><th>Lám.</th><th>Espacio</th><th>Estado</th><th>MEP</th><th>Acabados</th><th>Avance</th><th>Fotos</th></tr>
    ${S.rooms.map((r,i)=>`<tr class="go" data-act="go" data-id="${r.id}"><td style="font-family:var(--mono)">L-${pad(i+1)}</td><td><b>${esc(r.name)}</b></td><td><span class="pill ${r.status}">${STAT[r.status]}</span></td><td>${mepProg(r)===null?'—':mepProg(r)+'%'}</td><td>${finProg(r)===null?'—':finProg(r)+'%'}</td><td style="min-width:110px"><div class="row" style="flex-wrap:nowrap;align-items:center"><span class="bar"><i style="width:${prog(r)}%"></i></span><span style="font:12px var(--mono)">${prog(r)}%</span></div></td><td>${nPhotos(r)}</td></tr>`).join('')}</table></div></div>
@@ -247,7 +248,7 @@ function dashVisitas(){
     const s=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,k=set[s]?set[s].size:0,past=d<now&&s!==today(),isT=s===today();
     if(past||isT&&k){due++;if(k)hit++}
     col.push(`<div class="cell ${k?'hit':past?'miss':isT?'now':''}" title="${s}: ${k} espacios">${k||''}</div>`)}
-    weeks.push(`<div class="wk"><small>${d.getDate()}/${d.getMonth()+1}</small>${col.join('')}</div>`)}
+    const wd=new Date(mon);wd.setDate(mon.getDate()+w*7);weeks.push(`<div class="wk"><small>${wd.getDate()}/${wd.getMonth()+1}</small>${col.join('')}</div>`)}
   const rows=S.rooms.map(r=>({r,l:lastVisit(r)})).sort((a,b)=>(a.l||'').localeCompare(b.l||''));
   return `<div class="dgrid"><div class="panel"><h3>Cumplimiento de visitas · últimas 8 semanas</h3>
    <div class="row" style="align-items:center;gap:20px"><div class="donut" style="background:conic-gradient(var(--ok) 0 ${pct(hit,due)}%,var(--rule) ${pct(hit,due)}% 100%)"><b>${pct(hit,due)}%</b></div><div class="lg"><div>${hit} de ${due} días de obra con registro</div><div style="color:var(--mute)">Lunes, miércoles y sábado</div></div></div>
@@ -279,7 +280,7 @@ function projectPanel(){
 /* ---------- lámina ---------- */
 function roomView(r){
   const i=S.rooms.indexOf(r),p=S.project,mp=mepProg(r),fp=finProg(r);
-  const T=[['registro','Registro de obra',r.visits.length],['mep','Redes MEP',r.mep.length],['acabados','Acabados',r.fin.length],['planos','Planos',r.plans.length],['observ','Observaciones',r.punch.filter(x=>!x.done).length||''],['notas','Notas','']];
+  const T=[['registro','Registro de obra',r.visits.length],['mep','Redes MEP',r.mep.length],['acabados','Acabados',r.fin.length],['planos','Planos',r.plans.length],['observ','Observaciones',r.punch.filter(openP).length||''],['notas','Notas','']];
   return `
   <div class="tb">
    <div class="name"><label>Espacio</label><input data-rf="name" value="${esc(r.name)}"></div>
@@ -306,11 +307,13 @@ function registroTab(r){
   return `<div class="panel"><h3>Nueva visita</h3>
    <div class="row f"><div style="width:160px"><label>Fecha</label><input type="date" id="vd" value="${draft.date||today()}"></div>
    <div style="width:170px"><label>Disciplina</label><select id="vt">${opts(TAGS,draft.tag||'General')}</select></div>
+   <div style="width:140px"><label>Clima</label><select id="vw">${opts(['—','Soleado','Nublado','Lluvia'],draft.w||'—')}</select></div><div style="width:100px"><label>Personal</label><input id="vp" type="number" min="0" placeholder="n.º" value="${esc(draft.p||'')}"></div>
    <div style="flex:1;min-width:220px"><label>Observaciones</label><input id="vn" placeholder="Qué se encontró, qué avanzó, qué falta" value="${esc(draft.note||'')}"></div></div>
+   <div class="row f">${field('Retrasos o impedimentos (opcional)',`<input id="vx" placeholder="Ej. Llegó tarde el material eléctrico">`)}</div>
    <label class="drop" id="drop"><input type="file" id="vf" accept="image/*" multiple>📷 Toma fotos o arrástralas aquí<br><small>Se comprimen y se guardan en la carpeta de este espacio en Drive</small></label>
    ${draft.files.length?`<div class="thumbs">${draft.files.map(f=>`<img class="tn" src="${f.url}" alt="">`).join('')}</div>`:''}
    <div><button class="btn sig" data-act="savevisit" id="svbtn">Guardar visita en Drive</button></div></div>
-  <div class="panel"><h3>Historial</h3>${vs.length?vs.map(v=>{const d=dparts(v.date);return`<div class="visit"><div class="d"><b>${d.d}</b>${d.m} ${d.y}<br>${esc(d.w)}<br><button class="ghost" data-act="delvisit" data-id="${v.id}">Eliminar</button></div><div><span class="tag">${esc(v.tag||'General')}</span><p>${esc(v.note)||'<span style="color:var(--mute)">Solo registro fotográfico</span>'}</p>${v.photos.length?`<div class="grid">${phHtml(v.photos)}</div>`:''}</div></div>`}).join(''):'<div class="empty">Aún no hay visitas. Registra la de hoy arriba.</div>'}</div>`;
+  <div class="panel"><h3>Historial</h3>${vs.length?vs.map(v=>{const d=dparts(v.date);return`<div class="visit"><div class="d"><b>${d.d}</b>${d.m} ${d.y}<br>${esc(d.w)}<br><button class="ghost" data-act="delvisit" data-id="${v.id}">Eliminar</button></div><div><span class="tag">${esc(v.tag||'General')}</span>${v.w&&v.w!=='—'?` <span class="tag">${esc(v.w)}</span>`:''}${v.p?` <span class="tag">${esc(v.p)} personas</span>`:''}${v.delay?` <span class="tag sev-media">Retraso: ${esc(v.delay)}</span>`:''}<p>${esc(v.note)||'<span style="color:var(--mute)">Solo registro fotográfico</span>'}</p>${v.photos.length?`<div class="grid">${phHtml(v.photos)}</div>`:''}</div></div>`}).join(''):'<div class="empty">Aún no hay visitas. Registra la de hoy arriba.</div>'}</div>`;
 }
 
 function mepTab(r){
@@ -356,7 +359,7 @@ function observTab(r){
    <div style="width:110px"><label>Prioridad</label><select id="os">${opts(SEV,'media')}</select></div>
    <label class="btn alt" style="cursor:pointer">📷 Foto<input type="file" id="oph" accept="image/*" hidden></label>
    <button class="btn" data-act="addpunch" id="opbtn">Añadir</button></div></div>
-  <div class="panel"><h3>Observaciones · ${r.punch.filter(x=>!x.done).length} abiertas</h3>${r.punch.length?r.punch.map(x=>`<div class="item ${x.done?'done':''}"><div class="it-h"><input type="checkbox" ${x.done?'checked':''} data-act="togpunch" data-id="${x.id}"><b style="flex:1">${esc(x.text)}</b><span class="tag">${esc(x.tag)}</span><span class="tag sev-${x.sev}">${x.sev}</span><button class="ghost" data-act="delpunch" data-id="${x.id}">✕</button></div>${(x.photos||[]).length?`<div class="grid sm">${phHtml(x.photos)}</div>`:''}</div>`).join(''):'<div class="empty">Sin observaciones. Anota lo que haya que corregir, con su foto.</div>'}</div>`;
+  <div class="panel"><h3>Observaciones · ${r.punch.filter(openP).length} abiertas</h3>${r.punch.length?r.punch.map(x=>EXT.punchRow(x,r.id)).join(''):'<div class="empty">Sin observaciones. Anota lo que haya que corregir, con su foto.</div>'}</div>`;
 }
 function notasTab(r){
   return `<div class="panel f"><h3>Alcance y notas técnicas</h3>
@@ -388,15 +391,15 @@ document.addEventListener('click',async ev=>{
   if(a==='addfin'){if(!val('fm'))return toast('Escribe el material.');r.fin.push({id:uid(),el:val('fe'),mat:val('fm'),ref:val('fr'),qty:val('fq'),unit:val('fu'),st:'por comprar'});touch();return render()}
   if(a==='delfin'){r.fin=r.fin.filter(x=>x.id!==id);touch();return render()}
   if(a==='addpunch')return addPunch(el);
-  if(a==='togpunch'){const x=r.punch.find(p=>p.id===id);x.done=el.checked;touch();return render()}
-  if(a==='delpunch'){r.punch=r.punch.filter(x=>x.id!==id);touch();return render()}
   if(a==='delplan'){r.plans=r.plans.filter(x=>x.id!==id);touch();return render()}
   if(a==='delvisit'){r.visits=r.visits.filter(x=>x.id!==id);touch();return render()}
   if(a==='savevisit')return saveVisit(el);
   if(a==='report')return report(el);
+  if(EXT.act[a])return EXT.act[a](el);
 });
 document.addEventListener('change',async ev=>{
   const t=ev.target;if(!S)return;
+  if(EXT.change(t))return;
   if(t.dataset.pf){S.project[t.dataset.pf]=t.value;touch();if(t.dataset.pf==='name')render();return}
   if(t.dataset.rf){const r=room();r[t.dataset.rf]=t.value;touch();if(t.dataset.rf==='name')render();return}
   if(t.dataset.mst){const i=room().mep.find(x=>x.id===t.dataset.mst);i.st=t.value;touch();
@@ -425,7 +428,7 @@ document.addEventListener('input',ev=>{if(ev.target.id==='vn')draft.note=ev.targ
 
 async function addDraft(fl){
   for(const f of fl){const b=await shrink(f);if(b)draft.files.push({blob:b,url:URL.createObjectURL(b)})}
-  draft.date=$('#vd')?.value;draft.note=$('#vn')?.value;draft.tag=$('#vt')?.value;render();
+  draft.date=$('#vd')?.value;draft.note=$('#vn')?.value;draft.tag=$('#vt')?.value;draft.w=$('#vw')?.value;draft.p=$('#vp')?.value;render();
 }
 async function saveVisit(btn){
   const r=room(),note=val('vn'),date=$('#vd').value||today(),tag=$('#vt').value;
@@ -435,7 +438,7 @@ async function saveVisit(btn){
     let k=0;
     for(const f of draft.files){btn.textContent=`Subiendo foto ${++k} de ${draft.files.length}…`;
       const name=`${date} · ${tag} · ${uid().slice(0,5)}.jpg`;photos.push({id:await upload(r,name,f.blob,'image/jpeg'),name})}
-    r.visits.push({id:uid(),date,note,tag,photos});if(r.status==='pendiente')r.status='proceso';
+    r.visits.push({id:uid(),date,note,tag,photos,w:val('vw'),p:val('vp'),delay:val('vx')});if(r.status==='pendiente')r.status='proceso';
     draft={files:[]};touch();toast('Visita guardada en Drive');render();
   }catch(e){fail(e);btn.disabled=false;btn.textContent='Guardar visita en Drive'}
 }
@@ -443,7 +446,7 @@ async function addPunch(btn){
   const r=room(),text=val('ot');if(!text)return toast('Describe la observación.');
   btn.disabled=true;
   try{const ph=await uploadPhotos(r,$('#oph').files,`OBS · ${$('#og').value}`);
-    r.punch.push({id:uid(),text,tag:$('#og').value,sev:$('#os').value,done:false,date:today(),photos:ph});touch();render()}
+    r.punch.push({id:uid(),text,tag:$('#og').value,sev:$('#os').value,st:'open',date:today(),photos:ph});touch();render()}
   catch(e){fail(e);btn.disabled=false}
 }
 async function addPlans(fl){
@@ -467,13 +470,14 @@ async function report(btn){
   try{
     let h=`<h1>${esc(p.name)}</h1><p>${esc(p.address)}</p><p><b>Propietario:</b> ${esc(p.owner)||'—'}<br><b>Responsable técnico:</b> ${esc(p.lead)||'—'}</p><p><b>Avance general:</b> ${total()}%<br><b>Emitido:</b> ${today()}</p>
     <h2>Índice de láminas</h2><table border="1" cellpadding="5"><tr><th>Lámina</th><th>Espacio</th><th>Estado</th><th>Redes MEP</th><th>Acabados</th><th>Avance</th></tr>${S.rooms.map((r,i)=>`<tr><td>L-${pad(i+1)}</td><td>${esc(r.name)}</td><td>${STAT[r.status]}</td><td>${mepProg(r)??'—'}%</td><td>${finProg(r)??'—'}%</td><td>${prog(r)}%</td></tr>`).join('')}</table>`;
+    h+=EXT.reportHtml();
     for(const[i,r]of S.rooms.entries()){
       btn.textContent=`Armando lámina ${i+1} de ${S.rooms.length}…`;
       h+=`<br style="page-break-before:always"><h1>L-${pad(i+1)} · ${esc(r.name)}</h1><table border="1" cellpadding="5"><tr><td><b>Nivel</b></td><td>${esc(r.level)}</td><td><b>Área</b></td><td>${esc(r.area)} m²</td></tr><tr><td><b>Escala</b></td><td>${esc(r.scale)}</td><td><b>Ref. plano</b></td><td>${esc(r.ref)}</td></tr><tr><td><b>Estado</b></td><td>${STAT[r.status]}</td><td><b>Avance</b></td><td>${prog(r)}%</td></tr></table>
       ${r.scope?`<h3>Alcance</h3><p>${esc(r.scope).replace(/\n/g,'<br>')}</p>`:''}
       ${r.mep.length?`<h3>Redes MEP</h3><table border="1" cellpadding="4"><tr><th>Disciplina</th><th>Punto</th><th>Cant.</th><th>Ubicación</th><th>Tag</th><th>Estado</th><th>Fotos</th></tr>${r.mep.map(x=>`<tr><td>${esc(x.disc)}</td><td>${esc(x.kind)}</td><td>${esc(x.qty)}</td><td>${esc(x.loc)}</td><td>${esc(x.tag)}</td><td>${stL(MEP_ST,x.st)}</td><td>${(x.photos||[]).length}</td></tr>`).join('')}</table>`:''}
       ${r.fin.length?`<h3>Cuadro de acabados</h3><table border="1" cellpadding="4"><tr><th>Elemento</th><th>Material</th><th>Ref.</th><th>Cantidad</th><th>Estado</th></tr>${r.fin.map(x=>`<tr><td>${esc(x.el)}</td><td>${esc(x.mat)}</td><td>${esc(x.ref)}</td><td>${esc(x.qty)} ${esc(x.unit)}</td><td>${stL(FIN_ST,x.st)}</td></tr>`).join('')}</table>`:''}
-      ${r.punch.length?`<h3>Observaciones</h3><ul>${r.punch.map(x=>`<li>${x.done?'☑':'☐'} ${esc(x.text)} (${esc(x.tag)}, prioridad ${x.sev})</li>`).join('')}</ul>`:''}
+      ${r.punch.length?`<h3>Observaciones</h3><ul>${r.punch.map(x=>`<li>${openP(x)?'☐':'☑'} ${esc(x.text)} (${esc(x.tag)}, prioridad ${x.sev})</li>`).join('')}</ul>`:''}
       <h3>Registro de obra</h3>`;
       for(const v of [...r.visits].sort((a,b)=>a.date.localeCompare(b.date))){
         h+=`<p><b>${v.date}</b> · ${esc(v.tag||'General')} — ${esc(v.note)}</p>`;

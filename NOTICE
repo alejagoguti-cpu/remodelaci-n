@@ -1,0 +1,17 @@
+Bitácora de Obra
+Copyright (c) 2026 Alejandra Gómez
+
+Este programa es software libre bajo la GNU Affero General Public License v3.0 o posterior
+(AGPL-3.0-or-later). Ver el archivo LICENSE.
+
+Obra derivada de:
+  OpenConstructionERP
+  https://github.com/datadrivenconstruction/OpenConstructionERP
+  Copyright (c) 2024-2026 Artem Boiko / DataDrivenConstruction y colaboradores
+  Licencia: AGPL-3.0-or-later
+
+Módulos de origen reescritos en JavaScript y traducidos al español en src/modules.js:
+  commissioning, ncr, punchlist, inspections, site_inventory, schedule_advanced (Last Planner), daily_diary.
+
+Si ofreces esta aplicación a terceros por red, la AGPL te obliga a ofrecerles el código fuente
+completo, incluidas tus modificaciones.

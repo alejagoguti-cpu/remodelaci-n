@@ -175,3 +175,8 @@ select.mini{border:1px solid var(--rule);background:var(--paper);padding:4px 8px
 .tag.sev-alta{color:var(--bad);border-color:var(--bad)}.tag.sev-media{color:var(--warn);border-color:var(--warn)}.tag.sev-baja{color:var(--mute)}
 table.mx td,table.mx th{text-align:center;padding:8px 6px}table.mx td:first-child,table.mx th:first-child{text-align:left}
 table.mx td.z{color:var(--rule)}
+/* PPC */
+.ppc{display:flex;gap:10px;align-items:flex-end;height:150px}
+.pcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%;position:relative;min-width:0}
+.pcol i{display:block;width:100%;background:var(--blue);min-height:2px}.pcol b{font:500 11px var(--mono)}.pcol small{font:10px var(--mono);color:var(--mute)}
+.tabs{flex-wrap:nowrap}
