@@ -81,7 +81,7 @@ async function prune(){
 function setSync(s,x){
   sync={s,x};const el=$('#sync');if(!el)return;
   el.className='sync '+(s==='ok'?'':s);
-  el.querySelector('span').textContent=s==='saving'?'Guardando en Drive…':s==='ok'?'Guardado en Drive '+(x?x.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}):''):s==='err'?'Sin guardar · reintentar':'Sin conexión';
+  el.querySelector('span').textContent=s==='saving'?(BACKEND==='local'?'Guardando…':'Guardando en Drive…'):s==='ok'?(BACKEND==='local'?'Guardado en este navegador ':'Guardado en Drive ')+(x?x.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}):''):s==='err'?'Sin guardar · reintentar':'Sin conexión';
   el.onclick=s==='err'?()=>persist():null;
 }
 function errText(e){
@@ -172,7 +172,7 @@ function render(){
    ${S.rooms.map((r,i)=>`<button class="sh ${view===r.id?'sel':''}" data-act="go" data-id="${r.id}"><span class="n">L-${pad(i+1)}</span><span class="t">${esc(r.name)}</span><span class="m"><span class="bar"><i style="width:${prog(r)}%"></i></span>${prog(r)}%</span></button>`).join('')}
    <form class="addf" id="addf"><input id="newname" placeholder="＋ Nueva habitación" autocomplete="off"></form>
    <div class="drive">${VISIT.includes(dow)?`<b>Hoy es día de obra.</b> ${doneToday} de ${S.rooms.length} espacios con registro.<br>`:''}
-    <a href="https://drive.google.com/drive/folders/${F.root||''}" target="_blank" rel="noopener">Abrir carpeta en Drive ↗</a></div></nav>
+    ${BACKEND==='local'?'<span>Modo local: los datos están solo en este navegador.</span>':`<a href="https://drive.google.com/drive/folders/${F.root||''}" target="_blank" rel="noopener">Abrir carpeta en Drive ↗</a>`}</div></nav>
   <main class="main" id="main"><div class="wrap">${view==='joint'?jointView():roomView(room())}</div></main>`;
   setSync(sync.s,sync.x);lazy();
 }
@@ -501,7 +501,7 @@ async function report(btn){
 (async()=>{
   try{
     mcp=await window.claude?.use('mcp');
-    if(!mcp){fatal={code:'server_not_connected'};return render()}
+    if(!mcp)mcp=await chooseBackend();
     S=await loadState();
     try{const v=localStorage.getItem('bo-view');if(v&&S.rooms.some(r=>r.id===v))view=v}catch(e){}
     sync={s:'ok',x:null};render();

@@ -5,6 +5,8 @@ const T='Bitácora de Obra';
 const read=f=>fs.readFileSync(f,'utf8');
 const body=read('src/body.html'), css=read('src/styles.css');
 const js=read('src/modules.js')+'\n'+read('src/app.js');
-fs.writeFileSync('index.html',`<!doctype html>\n<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${T}</title>\n<link rel="stylesheet" href="${FONT}">\n<link rel="stylesheet" href="src/styles.css"></head>\n<body>\n${body}<script src="src/modules.js"></script>\n<script src="src/app.js"></script>\n</body></html>\n`);
+fs.writeFileSync('index.html',`<!doctype html>\n<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${T}</title>\n<link rel="stylesheet" href="${FONT}">\n<link rel="stylesheet" href="src/styles.css"></head>\n<body>\n${body}<script src="config.js"></script>
+<script src="src/storage.js"></script>
+<script src="src/modules.js"></script>\n<script src="src/app.js"></script>\n</body></html>\n`);
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/bitacora.html',`<title>${T}</title>\n<link rel="stylesheet" href="${FONT}">\n<style>\n${css}</style>\n${body}<script>\n${js}</script>\n`);
