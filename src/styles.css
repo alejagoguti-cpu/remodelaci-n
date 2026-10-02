@@ -1,15 +1,15 @@
-/* Concepto: lámina de arquitectura. Riel de índice de láminas a la izquierda, hoja con cuadro de rótulo (carátula) y pestañas de trabajo. */
+/* Tema: panel de control claro, barra lateral, tarjetas con borde suave, azul y coral */
 :root{
-  --paper:#eceeef; --sheet:#fbfbfa; --ink:#121c26; --mute:#5d6975; --rule:#cfd4d8; --rule2:#e1e4e6;
-  --blue:#173e63; --blue-soft:#e3ebf3; --signal:#e4570f; --signal-soft:#fdebe1; --ok:#1f7a4d; --warn:#b7791f; --bad:#b3261e;
-  --display:'Archivo','Arial Narrow',sans-serif; --body:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  --paper:#f6f7fb; --sheet:#ffffff; --ink:#1b2437; --mute:#6b7487; --rule:#e4e7ee; --rule2:#eef0f5;
+  --blue:#2f5be7; --blue-soft:#e9efff; --signal:#ff7a45; --signal-soft:#fff0e9; --ok:#1fa971; --warn:#f2a31b; --bad:#e5484d;
+  --display:'Plus Jakarta Sans',system-ui,sans-serif; --body:'Plus Jakarta Sans',system-ui,sans-serif; --mono:'Plus Jakarta Sans',system-ui,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --paper:#0e1318; --sheet:#151c23; --ink:#e9edf0; --mute:#8e9aa6; --rule:#2b3640; --rule2:#202a33;
-  --blue:#8fb7dd; --blue-soft:#1b2a3a; --signal:#ff7a3c; --signal-soft:#33211a; --ok:#4cc38a; --warn:#e0a63e; --bad:#ff7b72; color-scheme:dark}}
+  --paper:#0f1420; --sheet:#171d2c; --ink:#eaeefb; --mute:#8d97ad; --rule:#273049; --rule2:#1f2740;
+  --blue:#6f93ff; --blue-soft:#1c2848; --signal:#ff8a5b; --signal-soft:#35241d; --ok:#38c68b; --warn:#f0b13c; --bad:#ff6b70; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --paper:#0e1318; --sheet:#151c23; --ink:#e9edf0; --mute:#8e9aa6; --rule:#2b3640; --rule2:#202a33;
-  --blue:#8fb7dd; --blue-soft:#1b2a3a; --signal:#ff7a3c; --signal-soft:#33211a; --ok:#4cc38a; --warn:#e0a63e; --bad:#ff7b72; color-scheme:dark}
+  --paper:#0f1420; --sheet:#171d2c; --ink:#eaeefb; --mute:#8d97ad; --rule:#273049; --rule2:#1f2740;
+  --blue:#6f93ff; --blue-soft:#1c2848; --signal:#ff8a5b; --signal-soft:#35241d; --ok:#38c68b; --warn:#f0b13c; --bad:#ff6b70; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.5 var(--body);font-size:14px}

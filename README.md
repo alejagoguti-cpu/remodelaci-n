@@ -17,7 +17,7 @@ Seguimiento de remodelación con foco en **redes MEP** (eléctrica, hidráulica,
 - **Informe final** en Google Doc.
 
 ## Estructura
-- `src/styles.css`, `src/app.js`, `src/modules.js`, `src/storage.js`, `src/body.html`, `config.js`: código fuente.
+- `src/styles.css`, `src/app.js`, `src/modules.js`, `src/storage.js`, `src/dashboard.js`, `src/theme.css`, `src/body.html`, `config.js`: código fuente.
 - `node build.js`: genera `index.html` y `dist/bitacora.html` (todo en uno).
 - App publicada (privada): https://claude.ai/artifact/EYFQjdoNFFuWYtKoyajMkT
 

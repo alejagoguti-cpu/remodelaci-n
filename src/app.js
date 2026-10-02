@@ -161,32 +161,17 @@ function render(){
   if(fatal){const[t,m]=errText(fatal);$('#app').innerHTML=`<div class="loading" style="grid-column:1/-1"><div><h3 style="font:800 22px var(--display);text-transform:uppercase">${esc(t)}</h3><p>${esc(m)}</p><button class="btn" onclick="location.reload()">Recargar</button></div></div>`;return}
   if(!S)return;
   if(view!=='joint'&&!room())view='joint';
-  const tds=today(),dow=new Date().getDay(),doneToday=S.rooms.filter(r=>r.visits.some(v=>v.date===tds)).length;
-  const keep=document.activeElement&&document.activeElement.id;
-  $('#app').innerHTML=`
-  <header class="top"><div class="brand"><i></i><span>${esc(S.project.name)}</span></div>
-   <div class="week" title="Días de visita: lunes, miércoles y sábado">${[1,2,3,4,5,6,0].map(d=>`<b class="${VISIT.includes(d)?'v':''} ${d===dow?'t':''}">${WD[d]}</b>`).join('')}</div>
-   <div class="sync" id="sync"><i></i><span></span></div></header>
-  <nav class="rail"><button class="joint ${view==='joint'?'sel':''}" data-act="go" data-id="joint">▤ Proyecto conjunto</button>
-   <h6>Láminas · ${S.rooms.length} ${S.rooms.length===1?"espacio":"espacios"}</h6>
-   ${S.rooms.map((r,i)=>`<button class="sh ${view===r.id?'sel':''}" data-act="go" data-id="${r.id}"><span class="n">L-${pad(i+1)}</span><span class="t">${esc(r.name)}</span><span class="m"><span class="bar"><i style="width:${prog(r)}%"></i></span>${prog(r)}%</span></button>`).join('')}
-   <form class="addf" id="addf"><input id="newname" placeholder="＋ Nueva habitación" autocomplete="off"></form>
-   <div class="drive">${VISIT.includes(dow)?`<b>Hoy es día de obra.</b> ${doneToday} de ${S.rooms.length} espacios con registro.<br>`:''}
-    ${BACKEND==='local'?'<span>Modo local: los datos están solo en este navegador.</span>':`<a href="https://drive.google.com/drive/folders/${F.root||''}" target="_blank" rel="noopener">Abrir carpeta en Drive ↗</a>`}</div></nav>
-  <main class="main" id="main"><div class="wrap">${view==='joint'?jointView():roomView(room())}</div></main>`;
+  $('#app').innerHTML=shell(view==='joint'?jointView():roomView(room()));
   setSync(sync.s,sync.x);lazy();
 }
 
 /* ---------- proyecto conjunto + dashboards ---------- */
-const JT=[['resumen','Resumen'],['mep','Redes MEP'],['acabados','Acabados'],...EXT.tabs,['visitas','Visitas'],['galeria','Galería'],['proyecto','Proyecto']];
+const JT=[['resumen','Dashboard'],['mep','Redes MEP'],['acabados','Acabados'],...EXT.tabs,['visitas','Visitas'],['galeria','Galería'],['proyecto','Proyecto']];
 function jointView(){
-  const p=S.project,t=total(),M=allMep(),Fn=allFin();
-  const body=({resumen:jointResumen,mep:dashMep,acabados:dashAcabados,visitas:dashVisitas,galeria:dashGaleria,proyecto:projectPanel,...EXT.views})[jtab]();
-  return `
-  <div class="hero"><div><small>Proyecto conjunto · ${S.rooms.length} láminas</small><h1>${esc(p.name)}</h1><p>${esc(p.address)||'Agrega la dirección del proyecto'}${p.owner?' · '+esc(p.owner):''}</p></div>
-   <div class="big" style="--p:${t}" data-l="${t}%"></div></div>
-  <div class="stats"><div><b>${S.rooms.length}</b><span>Espacios</span></div><div><b>${M.length}</b><span>Puntos MEP</span></div><div><b>${Fn.length}</b><span>Ítems de acabado</span></div><div><b>${S.rooms.reduce((a,r)=>a+nPhotos(r),0)}</b><span>Fotografías</span></div><div><b>${allPunch().filter(openP).length}</b><span>Observaciones abiertas</span></div><div><b>${S.ncr.filter(n=>!['closed','void'].includes(n.st)).length}</b><span>NCR abiertas</span></div><div><b>${S.cx.filter(x=>x.status==='commissioned').length}/${S.cx.length}</b><span>Sistemas en servicio</span></div></div>
-  <div class="tabs">${JT.map(([k,l])=>`<button class="${jtab===k?'on':''}" data-act="jtab" data-v="${k}">${l}</button>`).join('')}</div>${body}`;
+  const lab=(JT.find(x=>x[0]===jtab)||[0,'Dashboard'])[1],p=S.project;
+  const body=({resumen:dashHome,mep:dashMep,acabados:dashAcabados,visitas:dashVisitas,galeria:dashGaleria,proyecto:projectPanel,...EXT.views})[jtab]();
+  return `<div class="pagehead"><div><h1>${jtab==='resumen'?'Dashboard':lab}</h1><p>${esc(p.name)}${p.address?' · '+esc(p.address):''}</p></div>
+   <div class="actions"><button class="btn alt" data-act="jtab" data-v="galeria">Galería</button><button class="btn" data-act="jtab" data-v="proyecto">Generar informe</button></div></div>${body}`;
 }
 const emptyRooms=()=>`<div class="empty"><h3 style="font:800 18px var(--display);text-transform:uppercase">Primero agrega espacios</h3>Los dashboards se llenan con los puntos MEP y los acabados de cada habitación.
   <div class="chips">${['Sala','Habitación principal','Habitación 2','Habitación 3','Baño','Cocina','Estudio','Pasillo','Terraza'].map(n=>`<button data-act="quick" data-n="${n}">${n}</button>`).join('')}</div></div>`;
@@ -379,7 +364,7 @@ document.addEventListener('click',async ev=>{
   const a=el.dataset.act,r=room(),id=el.dataset.id;
   if(a==='go'){if(el.dataset.t)tab=el.dataset.t;return go(id)}
   if(a==='quick')return addRoom(el.dataset.n);
-  if(a==='jtab'){jtab=el.dataset.v;return render()}
+  if(a==='jtab'){jtab=el.dataset.v;view='joint';render();$('#main')?.scrollTo(0,0);return}
   if(a==='gf'){jgf=id;return render()}
   if(a==='gt'){jgt=id;return render()}
   if(a==='zoom'){const im=el.querySelector('img');if(im){$('#lbi').src=im.src;$('#lb').classList.add('on')}return}
