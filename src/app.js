@@ -47,8 +47,9 @@ async function ensureFolders(){
 const b64utf8=b=>new TextDecoder().decode(Uint8Array.from(atob(b),c=>c.charCodeAt(0)));
 function normalize(s){
   s.v=2;s.project=Object.assign({name:'Remodelación segundo piso',address:'',owner:'',lead:'',start:today()},s.project);
-  s.rooms=(s.rooms||[]).map(r=>Object.assign(mkRoom(r.name),r,{mep:r.mep||[],fin:r.fin||[],punch:(r.punch||[]).map(x=>x.st?x:{...x,st:x.done?'closed':'open'}),plans:r.plans||[],visits:r.visits||[]}));
+  s.rooms=(s.rooms||[]).map(r=>Object.assign(mkRoom(r.name),r,{mep:r.mep||[],fin:r.fin||[],punch:(r.punch||[]).map(x=>x.st?x:{...x,st:x.done?'aprobada':'pendiente'}),plans:r.plans||[],visits:r.visits||[]}));
   ['cx','ncr','insp','mat','plan'].forEach(k=>s[k]=s[k]||[]);
+  EXT.migrate(s);
   return s;
 }
 async function loadState(){
@@ -437,7 +438,7 @@ async function addPunch(btn){
   const r=room(),text=val('ot');if(!text)return toast('Describe la observación.');
   btn.disabled=true;
   try{const ph=await uploadPhotos(r,$('#oph').files,`OBS · ${$('#og').value}`);
-    r.punch.push({id:uid(),text,tag:$('#og').value,sev:$('#os').value,st:'open',date:today(),photos:ph});touch();render()}
+    r.punch.push({id:uid(),text,tag:$('#og').value,sev:$('#os').value,st:'pendiente',date:today(),photos:ph});touch();render()}
   catch(e){fail(e);btn.disabled=false}
 }
 async function addPlans(fl){

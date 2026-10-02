@@ -7,13 +7,13 @@ Seguimiento de remodelación con foco en **redes MEP** (eléctrica, hidráulica,
 - **Redes MEP** por habitación: puntos con estado (proyectado, instalado, probado, cerrado) y foto antes de cerrar el muro.
 - **Acabados**: cuadro por elemento con material, cantidad y estado, y lista de compras.
 - **Registro de obra** por visita (lunes, miércoles y sábado) con clima, personal, retrasos y fotos por disciplina.
-- Módulos adaptados de OpenConstructionERP:
-  - **Puesta en marcha** (commissioning): pruebas previas y funcionales por sistema, incidencias y puerta de puesta en servicio.
-  - **Inspecciones**: plantillas de prueba (presión, aislamiento, desagües, gas, pisos, pintura, impermeabilización).
-  - **No conformidades** (NCR): flujo identificada → revisión → acción correctiva → verificación → cerrada.
-  - **Observaciones**: flujo con verificación y reapertura.
+- Módulos de proyecto:
+  - **Entrega de sistemas**: pruebas previas y en operación por sistema, incidencias y entrega solo cuando todo cumple.
+  - **Pruebas e inspecciones**: plantillas (presión de agua, aislamiento eléctrico, desagües, gas, pisos, pintura, impermeabilización).
+  - **No conformidades**: abierta → causa analizada → corregida → cerrada.
+  - **Observaciones**: pendiente → en corrección → por revisar → aprobada, con rechazos y reaperturas.
   - **Materiales**: ingresos, consumo, desperdicio y saldo.
-  - **Plan semanal** (Last Planner): compromisos, PPC y causas de incumplimiento.
+  - **Plan semanal**: compromisos, cumplimiento y causas de incumplimiento.
 - **Informe final** en Google Doc.
 
 ## Estructura
@@ -22,7 +22,7 @@ Seguimiento de remodelación con foco en **redes MEP** (eléctrica, hidráulica,
 - App publicada (privada): https://claude.ai/artifact/EYFQjdoNFFuWYtKoyajMkT
 
 ## Licencia
-**AGPL-3.0-or-later**, por derivar de [OpenConstructionERP](https://github.com/datadrivenconstruction/OpenConstructionERP). Ver `LICENSE` y `NOTICE`.
+Sin licencia definida todavía (todos los derechos reservados). Elige una antes de compartir el código con terceros.
 
 ## Dónde se guardan los datos
 | Cómo la abres | Dónde guarda |

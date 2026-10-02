@@ -17,7 +17,7 @@ const IC={
  down:'<path d="m6 9 6 6 6-6"/>'
 };
 const icon=(k,s=20)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
-const NAV=[['resumen','Dashboard','dashboard'],['mep','Redes MEP','mep'],['acabados','Acabados','acabados'],['cx','Puesta en marcha','cx'],['insp','Inspecciones','insp'],['ncr','No conformidades','ncr'],['punch','Observaciones','punch'],['mat','Materiales','mat'],['plan','Plan semanal','plan'],['visitas','Visitas','visitas'],['galeria','Galería','galeria'],['proyecto','Proyecto','proyecto']];
+const NAV=[['resumen','Dashboard','dashboard'],['mep','Redes MEP','mep'],['acabados','Acabados','acabados'],['cx','Entrega de sistemas','cx'],['insp','Pruebas e inspecciones','insp'],['ncr','No conformidades','ncr'],['punch','Observaciones','punch'],['mat','Materiales','mat'],['plan','Plan semanal','plan'],['visitas','Visitas','visitas'],['galeria','Galería','galeria'],['proyecto','Proyecto','proyecto']];
 
 function shell(inner){
   const dow=new Date().getDay(),tds=today(),doneToday=S.rooms.filter(r=>r.visits.some(v=>v.date===tds)).length;
@@ -54,7 +54,7 @@ function searchAll(q){
     r.punch.forEach(i=>{if(has(i.text))out.push({t:'Observación',l:`${i.text} · ${r.name}`,go:`room|${r.id}|observ`})});
     r.visits.forEach(v=>{if(has(v.note))out.push({t:'Visita',l:`${v.date} · ${v.note} · ${r.name}`,go:`room|${r.id}|registro`})});
   });
-  S.ncr.forEach(n=>{if(has(n.title,n.no,n.desc))out.push({t:'NCR',l:`${n.no} · ${n.title}`,go:'joint|ncr'})});
+  S.ncr.forEach(n=>{if(has(n.title,n.no,n.desc))out.push({t:'No conformidad',l:`${n.no} · ${n.title}`,go:'joint|ncr'})});
   S.cx.forEach(c=>{if(has(c.name,c.tag))out.push({t:'Sistema',l:c.name,go:'joint|cx'})});
   S.mat.forEach(m=>{if(has(m.item))out.push({t:'Material',l:m.item,go:'joint|mat'})});
   return out.slice(0,9);
