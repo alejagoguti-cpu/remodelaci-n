@@ -583,7 +583,7 @@ function render(){
    <div class="week" title="Días de visita: lunes, miércoles y sábado">${[1,2,3,4,5,6,0].map(d=>`<b class="${VISIT.includes(d)?'v':''} ${d===dow?'t':''}">${WD[d]}</b>`).join('')}</div>
    <div class="sync" id="sync"><i></i><span></span></div></header>
   <nav class="rail"><button class="joint ${view==='joint'?'sel':''}" data-act="go" data-id="joint">▤ Proyecto conjunto</button>
-   <h6>Láminas · ${S.rooms.length} espacios</h6>
+   <h6>Láminas · ${S.rooms.length} ${S.rooms.length===1?"espacio":"espacios"}</h6>
    ${S.rooms.map((r,i)=>`<button class="sh ${view===r.id?'sel':''}" data-act="go" data-id="${r.id}"><span class="n">L-${pad(i+1)}</span><span class="t">${esc(r.name)}</span><span class="m"><span class="bar"><i style="width:${prog(r)}%"></i></span>${prog(r)}%</span></button>`).join('')}
    <form class="addf" id="addf"><input id="newname" placeholder="＋ Nueva habitación" autocomplete="off"></form>
    <div class="drive">${VISIT.includes(dow)?`<b>Hoy es día de obra.</b> ${doneToday} de ${S.rooms.length} espacios con registro.<br>`:''}
@@ -841,16 +841,22 @@ document.addEventListener('input',ev=>{if(ev.target.id==='vn')draft.note=ev.targ
   if(n==='drop')z.id==='drop'?addDraft(ev.dataTransfer.files):addPlans(ev.dataTransfer.files);
 }));
 
-async function addDraft(fl){
-  for(const f of fl){const b=await shrink(f);if(b)draft.files.push({blob:b,url:URL.createObjectURL(b)})}
-  draft.date=$('#vd')?.value;draft.note=$('#vn')?.value;draft.tag=$('#vt')?.value;draft.w=$('#vw')?.value;draft.p=$('#vp')?.value;render();
+let pendingDraft=Promise.resolve();
+function addDraft(fl){
+  const list=[...fl];
+  pendingDraft=pendingDraft.then(async()=>{
+    for(const f of list){const b=await shrink(f);if(b)draft.files.push({blob:b,url:URL.createObjectURL(b)})}
+    draft.date=$('#vd')?.value;draft.note=$('#vn')?.value;draft.tag=$('#vt')?.value;draft.w=$('#vw')?.value;draft.p=$('#vp')?.value;render();
+  });
+  return pendingDraft;
 }
 async function saveVisit(btn){
+  await pendingDraft;
   const r=room(),note=val('vn'),date=$('#vd').value||today(),tag=$('#vt').value;
   if(!note&&!draft.files.length)return toast('Escribe una observación o agrega fotos.');
   btn.disabled=true;const photos=[];
   try{
-    let k=0;
+        let k=0;
     for(const f of draft.files){btn.textContent=`Subiendo foto ${++k} de ${draft.files.length}…`;
       const name=`${date} · ${tag} · ${uid().slice(0,5)}.jpg`;photos.push({id:await upload(r,name,f.blob,'image/jpeg'),name})}
     r.visits.push({id:uid(),date,note,tag,photos,w:val('vw'),p:val('vp'),delay:val('vx')});if(r.status==='pendiente')r.status='proceso';
