@@ -29,12 +29,12 @@ Seguimiento de remodelación con foco en **redes MEP** (eléctrica, hidráulica,
 |---|---|
 | Desde claude.ai (app publicada) | Google Drive, con tu conector de claude.ai |
 | Sitio web (GitHub Pages) con **modo local** | En el navegador de ese equipo (IndexedDB) |
-| Sitio web con **Google Drive** | Google Drive, carpeta  (requiere configurar ) |
+| Sitio web con **Google Drive** | Google Drive, carpeta `Bitácora Remodelación` (requiere configurar `config.js`) |
 
 ### Google Drive en el sitio web
 1. En Google Cloud Console crea un proyecto y activa la **Google Drive API**.
-2. Crea un **ID de cliente de OAuth** de tipo *Aplicación web* y agrega como origen autorizado .
-3. Pega el ID en  () y publica el cambio.
-4. La app pide solo el permiso : ve únicamente los archivos que ella misma crea.
+2. Crea un **ID de cliente de OAuth** de tipo *Aplicación web* y agrega como origen autorizado `https://alejagoguti-cpu.github.io`.
+3. Pega el ID en `config.js` (`window.BO_CONFIG={googleClientId:'...'}`) y publica el cambio.
+4. La app pide solo el permiso `drive.file`: ve únicamente los archivos que ella misma crea.
 
 La conexión directa con Google no se ha probado con credenciales reales. El modo local y la app en claude.ai sí se probaron.
